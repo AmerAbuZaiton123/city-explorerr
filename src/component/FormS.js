@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import { Form,Button } from 'react-bootstrap'
 import Error from './Error'
 import Location from './Location'
+import Weather from './Weather'
 
 export default class FormS extends Component {
     constructor(props){
@@ -11,6 +12,7 @@ export default class FormS extends Component {
     cityName : '',
     lat : ''   ,
     lon : ''  ,
+    weatherArr : [],
     show_Results: false,
     show_Error: false,      
     }
@@ -41,6 +43,10 @@ export default class FormS extends Component {
                     show_Error: true 
                   })
               } )
+              .then(res =>{
+                this.getWeatherData()
+                 
+              })
              }
         catch(e){
         await  this.setState({
@@ -49,6 +55,20 @@ export default class FormS extends Component {
         })
       }
     
+    }
+
+    getWeatherData = () =>{
+        axios.get(`${process.env.REACT_APP_BACK_END_PORT}/weather?lat=${this.state.lat}&lon=${this.state.lon}&searchQuery=${this.state.cityName}`)
+        .then(
+            weatherRes => {
+                this.setState({
+                    weatherArr : weatherRes.data
+                })
+            }
+        ).catch(
+            e => console.log(e)
+        )
+       
     }
     render() {
         let url2 = `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_LOCATION_KEY}&center=${this.state.lat},${this.state.lon}`
@@ -60,7 +80,7 @@ export default class FormS extends Component {
                         <Form.Text className="text-muted"   >
 search
                         </Form.Text>
-                        <Form.Control type="Text" placeholder="Enter email" onChange={this.getCityName} />
+                        <Form.Control type="Text" onChange={this.getCityName} />
                     </Form.Group>
                     <input type='submit' value="Explore" />
                    
@@ -69,6 +89,9 @@ search
                 {
                     this.state.show_Results && 
                     <Location src={`${url2}`} cityName={this.state.cityName} lon={this.state.lon} lat={this.state.lat} />
+                }
+                {
+                   ( this.state.weatherArr.length>0 && this.state.show_Results )&& <Weather weatherData={this.state.weatherArr}/>
                 }
                 {
                     this.state.show_Error && 
